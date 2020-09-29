@@ -1,0 +1,29 @@
+{
+    "schemaVersion": 2,
+    "config": {
+      "mediaType": "application/vnd.oci.image.config.v1+json",
+      "size": 7023,
+      "digest": "sha256:59b73b57115c60458677a277c34a324872ea1c49167cec253fe348dba295f470"
+    },
+    "layers": [
+      {
+        "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "size": 27758645,
+        "digest": "sha256:65cdcb6a68363de5d6f33582c9a00a70b5503368ff1913ce677fd63648689340"
+      },
+      {
+        "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "size": 30720,
+        "digest": "sha256:3bc62ff7d696ca7bb933cec752f1c11b342ce5de535bd7521ac856bb54de4792"
+      },
+      {
+        "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "size": 10240,
+        "digest": "sha256:03ec1ffbc43f3e91c3aa7c5159d73b3ca01d6246aa7608c283e5162b5f7f9562"
+      }
+    ],
+    "annotations": {
+      "com.example.key1": "value1",
+      "com.example.key2": "value2"
+    }
+  }

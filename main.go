@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,20 +11,9 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+
+	"toymanifest/model"
 )
-
-type ManifestLayer struct {
-	mediaType string
-	size      int
-	digest    string
-}
-
-type Manifest struct {
-	schemaVersion int
-	config        ManifestLayer
-	layers        []ManifestLayer
-	annotations   map[string]string
-}
 
 var port string
 var storagepath string
@@ -40,12 +30,24 @@ func pathsFromSum(sum string) (string, string) {
 
 // Manage manifests
 func manifest(w http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	manifestId := vars["manifest_id"]
 	if req.Method == http.MethodGet {
-		fmt.Fprintf(w, "GET manifest\n")
+		log.Printf("GET manifest %s\n", manifestId)
 
 	} else if req.Method == http.MethodPost {
-		fmt.Fprintf(w, "POST manifest\n")
-
+		log.Printf("POST manifest %s\n", manifestId)
+		// TODO: Should we check a Content-type here?
+		manifest := model.Manifest{}
+		buf, _ := ioutil.ReadAll(req.Body)
+		if err := json.Unmarshal(buf, &manifest); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("Unable to unmarshal manifest JSON\n%s", err)
+			return
+		}
+		//log.Println(manifest)
+		// TODO: Save the manifest structures in a database
+		manifest.Save(manifestId)
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprintf(w, "Method not allowed\n")
@@ -87,7 +89,7 @@ func upload(w http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodPost {
 		fmt.Fprintf(w, "POST layer\n")
 		contentType := req.Header.Get("Content-type")
-		if contentType != layermediatype {
+		if contentType != layermediatype || contentType != configmediatype {
 			w.WriteHeader(http.StatusUnsupportedMediaType)
 			fmt.Fprintf(w, "Bad content type in layer\n")
 			return
@@ -128,9 +130,16 @@ func upload(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 
+	db, err := model.StartDatabase()
+	if err != nil {
+		log.Printf("Unable to start database\n%s\n", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
 	r := mux.NewRouter()
 
-	r.HandleFunc("/manifest", manifest)
+	r.HandleFunc("/manifest/{manifest_id}", manifest)
 	r.HandleFunc("/layer/{layer_id}", layer)
 	r.HandleFunc("/upload", upload)
 

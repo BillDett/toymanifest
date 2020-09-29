@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Simulate a 'docker push' call
+# Usage: push tagname endpoint
+#   tagname - follow standard 'repository:tag' format
+#   endpoint - URL for toymanifest service
+
+export TAG=$1
+export HOST=$2
+if [ $# != 2 ]
+then
+    echo "Usage: push tagname endpoint"
+    exit 1
+fi
+
+curl -X POST $HOST/manifest/$TAG --data-binary @manifest.json
+curl -X POST -H "Content-Type: application/vnd.oci.image.config.v1+json" $HOST/upload --data-binary @config.json
+for layer in $(ls layers)
+do
+    curl -X POST -H "Content-Type: application/vnd.oci.image.layer.v1.tar+gzip" $HOST/upload --data-binary @$layer
+done
